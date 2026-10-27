@@ -82,11 +82,23 @@ python -m ipykernel install --user --name project-1-py312 --display-name "Python
 
 Place `application_train.csv`, `bureau.csv`, and `previous_application.csv` in `data/raw/`, then open `notebooks/main01.ipynb` and run all cells from top to bottom. The notebook writes the trained model, imputer, feature names, and decision metadata to `models/`.
 
-Run the dashboard from the project root with the project environment active:
+Run the dashboard from the project root. On Windows, call the project's Python directly so this works even when `python` is not on `PATH`:
 
 ```powershell
-python -m streamlit run app.py
+.\.venv\Scripts\python.exe -m streamlit run app.py
 ```
+
+On macOS/Linux, activate `.venv` first and run `python -m streamlit run app.py`.
+
+#### If port 8501 is already in use
+
+Streamlit uses port `8501` by default. If the dashboard is already running, refresh its existing browser tab. To start another instance, choose a different port, such as `8502`:
+
+```powershell
+.\.venv\Scripts\python.exe -m streamlit run app.py --server.port 8502
+```
+
+Open `http://localhost:8502` on the computer. For phone access, use `http://<computer-LAN-IP>:8502` instead of port `8501` while that instance is running.
 
 The dashboard supports Arabic and English and displays USD and EGP using the editable planning rate in the sidebar (it is not a live exchange quote).
 
@@ -94,8 +106,8 @@ The dashboard supports Arabic and English and displays USD and EGP using the edi
 
 1. Keep the computer and phone on the same private local network/router. The computer can use Ethernet while the phone uses Wi-Fi.
 2. On Windows, run `ipconfig` in PowerShell and note the IPv4 address for the active network adapter.
-3. On the phone, open `http://<computer-LAN-IP>:8501` in a browser. Replace `<computer-LAN-IP>` with the address from `ipconfig` (for example, `http://192.168.1.20:8501`).
-4. If Windows Firewall asks, allow access on **Private networks**. If the connection is still blocked, allow inbound TCP port `8501` on the Private profile.
+3. On the phone, open `http://<computer-LAN-IP>:8501` in a browser. Replace `<computer-LAN-IP>` with the address from `ipconfig` (for example, `http://192.168.1.20:8501`). If you started Streamlit on another port, use that port in the phone address too.
+4. If Windows Firewall asks, allow access on **Private networks**. If the connection is still blocked, allow inbound TCP on the port used by Streamlit (`8501` by default) on the Private profile.
 
 The computer's LAN address can change, so check `ipconfig` again if the link stops working. Keep the app on your local network; don't use public IP port forwarding to expose it to the internet.
 

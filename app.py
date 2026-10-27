@@ -7,7 +7,9 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 import streamlit as st
+import xgboost as xgb
 
 from src.feature_engineering import build_features
 
@@ -79,6 +81,44 @@ TEXT = {
         "scenario_note": "الحساب تقديري حسب الافتراضات المدخلة، ولا يمثل ربحًا فعليًا.",
         "score_title": "تقييم مخاطر العملاء",
         "score_intro": "ارفع بيانات طلبات العملاء بصيغة CSV لتقدير احتمال التعثر باستخدام النموذج المحفوظ.",
+        "single_title": "تقييم عميل واحد",
+        "single_intro": "جرّب إدخال بيانات عميل أو استخدم مثالًا جاهزًا. التقييم يستخدم النموذج المحفوظ.",
+        "preset_label": "اختيار مثال",
+        "preset_custom": "إدخال يدوي",
+        "preset_low": "مثال أقل مخاطرة",
+        "preset_high": "مثال أعلى مخاطرة",
+        "income_input": "الدخل السنوي (USD) — AMT_INCOME_TOTAL",
+        "credit_input": "مبلغ الائتمان (USD) — AMT_CREDIT",
+        "annuity_input": "القسط السنوي (USD) — AMT_ANNUITY",
+        "age_input": "العمر بالسنوات",
+        "ext2_input": "مصدر خارجي 2 — EXT_SOURCE_2",
+        "ext3_input": "مصدر خارجي 3 — EXT_SOURCE_3",
+        "score_single": "قيّم العميل",
+        "single_probability": "احتمال التعثر المقدّر",
+        "single_caveat": "هذا المثال يدخل 6 خصائص فقط؛ باقي الخصائص التي يتوقعها النموذج تُستكمل بالتعويض الإحصائي. استخدم ملف بيانات كاملًا للتقييم التشغيلي.",
+        "sample_download": "تنزيل ملف CSV تجريبي",
+        "sample_help": "يحتوي على الأعمدة الأساسية المطلوبة لتقييم الطلبات.",
+        "required_columns_error": "الأعمدة الأساسية التالية مطلوبة في ملف الطلبات:",
+        "empty_csv_error": "ملف CSV لا يحتوي على أي طلبات.",
+        "single_error": "تعذر تقييم العميل. تأكد من وجود ملفات النموذج.",
+        "shap_title": "تفسير نتيجة التقييم بـ SHAP",
+        "shap_intro": "يوضح الرسم أهم العوامل التي رفعت أو خفضت درجة التعثر في النموذج.",
+        "shap_contribution": "مساهمة SHAP",
+        "shap_axis": "المساهمة في درجة النموذج الخام (log-odds)",
+        "shap_risk_up": "عوامل رفعت المخاطر",
+        "shap_risk_down": "عوامل خفضت المخاطر",
+        "shap_up": "رفعت المخاطر",
+        "shap_down": "خفضت المخاطر",
+        "shap_no_factors": "لا توجد مساهمات واضحة في هذا الاتجاه ضمن العوامل المعروضة.",
+        "shap_note": "هذه مساهمات TreeSHAP حقيقية من النموذج، وتقيس الأثر على الدرجة الخام (log-odds)، وليس نقاطًا مئوية مباشرة من احتمال التعثر.",
+        "shap_feature_labels": {
+            "EXT_SOURCE_2": "المصدر الخارجي 2 (EXT_SOURCE_2)",
+            "EXT_SOURCE_3": "المصدر الخارجي 3 (EXT_SOURCE_3)",
+            "AMT_INCOME_TOTAL": "إجمالي الدخل (AMT_INCOME_TOTAL)",
+            "AMT_CREDIT": "مبلغ الائتمان (AMT_CREDIT)",
+            "AMT_ANNUITY": "قيمة القسط (AMT_ANNUITY)",
+            "DAYS_BIRTH": "العمر بالأيام (DAYS_BIRTH)",
+        },
         "application_csv": "ملف طلبات العملاء (CSV)",
         "bureau_csv": "ملف السجل الائتماني السابق (اختياري)",
         "previous_csv": "ملف الطلبات السابقة (اختياري)",
@@ -147,6 +187,44 @@ TEXT = {
         "scenario_note": "This is an estimate from the entered assumptions, not realized profit.",
         "score_title": "Applicant risk scoring",
         "score_intro": "Upload applicant applications as a CSV to estimate default risk using the saved model.",
+        "single_title": "Score one applicant",
+        "single_intro": "Enter applicant details or choose a demo profile. Scoring uses the saved model.",
+        "preset_label": "Choose a profile",
+        "preset_custom": "Custom input",
+        "preset_low": "Lower-risk example",
+        "preset_high": "Higher-risk example",
+        "income_input": "Annual income (USD) — AMT_INCOME_TOTAL",
+        "credit_input": "Credit amount (USD) — AMT_CREDIT",
+        "annuity_input": "Annual payment (USD) — AMT_ANNUITY",
+        "age_input": "Age in years",
+        "ext2_input": "External source 2 — EXT_SOURCE_2",
+        "ext3_input": "External source 3 — EXT_SOURCE_3",
+        "score_single": "Score applicant",
+        "single_probability": "Estimated default probability",
+        "single_caveat": "This form supplies only 6 features; the remaining model features are imputed. Use a complete application record for operational assessment.",
+        "sample_download": "Download sample CSV",
+        "sample_help": "Includes the core columns required for applicant scoring.",
+        "required_columns_error": "These core columns are required in the application file:",
+        "empty_csv_error": "The CSV file contains no applications.",
+        "single_error": "Could not score this applicant. Check that model artifacts are available.",
+        "shap_title": "SHAP explanation",
+        "shap_intro": "See which features raised or lowered the model's default-risk score.",
+        "shap_contribution": "SHAP contribution",
+        "shap_axis": "Contribution to raw model score (log-odds)",
+        "shap_risk_up": "Factors increasing risk",
+        "shap_risk_down": "Factors decreasing risk",
+        "shap_up": "Increased risk",
+        "shap_down": "Decreased risk",
+        "shap_no_factors": "No clear contributions in this direction among the displayed factors.",
+        "shap_note": "These are actual TreeSHAP contributions from the model. They affect the raw score (log-odds), not default probability by a direct percentage-point amount.",
+        "shap_feature_labels": {
+            "EXT_SOURCE_2": "External source 2 (EXT_SOURCE_2)",
+            "EXT_SOURCE_3": "External source 3 (EXT_SOURCE_3)",
+            "AMT_INCOME_TOTAL": "Total income (AMT_INCOME_TOTAL)",
+            "AMT_CREDIT": "Credit amount (AMT_CREDIT)",
+            "AMT_ANNUITY": "Annuity amount (AMT_ANNUITY)",
+            "DAYS_BIRTH": "Age in days (DAYS_BIRTH)",
+        },
         "application_csv": "Applicant applications (CSV)",
         "bureau_csv": "Previous credit history (optional)",
         "previous_csv": "Previous applications (optional)",
@@ -260,6 +338,40 @@ def score_applications(
             "Decision threshold": threshold,
             "High risk": high_risk,
         }
+    )
+
+
+def explain_application(
+    application_df: pd.DataFrame,
+    model,
+    imputer,
+    feature_names: list[str],
+    language: str,
+) -> pd.DataFrame:
+    """Return exact XGBoost TreeSHAP contributions for one application."""
+    engineered = build_features(application_df).drop(columns=["TARGET"], errors="ignore")
+    model_input = engineered.reindex(columns=feature_names, fill_value=0)
+    model_input = model_input.apply(pd.to_numeric, errors="coerce")
+    imputed = imputer.transform(model_input)
+    contribution_values = model.get_booster().predict(
+        xgb.DMatrix(imputed), pred_contribs=True
+    )[0, :-1]
+
+    labels = TEXT[language]["shap_feature_labels"]
+    supplied_features = set(application_df.columns) - {"SK_ID_CURR", "TARGET"}
+    explanation = pd.DataFrame(
+        {
+            "feature_name": feature_names,
+            "feature": [labels.get(name, name) for name in feature_names],
+            "contribution": contribution_values,
+        }
+    )
+    return (
+        explanation[explanation["feature_name"].isin(supplied_features)]
+        .assign(absolute_contribution=lambda df: df["contribution"].abs())
+        .nlargest(10, "absolute_contribution")
+        .sort_values("contribution")
+        .reset_index(drop=True)
     )
 
 
@@ -394,6 +506,138 @@ else:
         help=t["threshold_help"],
         format="%.2f",
     )
+    st.subheader(t["single_title"], text_alignment=alignment)
+    st.write(t["single_intro"])
+    preset = st.selectbox(
+        t["preset_label"],
+        options=["custom", "low", "high"],
+        format_func=lambda value: t[{"custom": "preset_custom", "low": "preset_low", "high": "preset_high"}[value]],
+        key=f"single_preset_{text_language}",
+    )
+    presets = {
+        "custom": (150_000.0, 500_000.0, 25_000.0, 35, 0.50, 0.50),
+        "low": (250_000.0, 450_000.0, 22_500.0, 45, 0.75, 0.68),
+        "high": (90_000.0, 800_000.0, 40_000.0, 23, 0.21, 0.15),
+    }
+    defaults = presets[preset]
+    with st.form("single_applicant_scoring"):
+        income_col, credit_col = st.columns(2)
+        with income_col:
+            single_income = st.number_input(t["income_input"], min_value=0.0, value=defaults[0], step=5_000.0, key=f"single_income_{text_language}_{preset}")
+            single_age = st.slider(t["age_input"], 18, 70, defaults[3], key=f"single_age_{text_language}_{preset}")
+            single_ext2 = st.slider(t["ext2_input"], 0.0, 1.0, defaults[4], step=0.01, key=f"single_ext2_{text_language}_{preset}")
+        with credit_col:
+            single_credit = st.number_input(t["credit_input"], min_value=0.0, value=defaults[1], step=5_000.0, key=f"single_credit_{text_language}_{preset}")
+            single_annuity = st.number_input(t["annuity_input"], min_value=0.0, value=defaults[2], step=500.0, key=f"single_annuity_{text_language}_{preset}")
+            single_ext3 = st.slider(t["ext3_input"], 0.0, 1.0, defaults[5], step=0.01, key=f"single_ext3_{text_language}_{preset}")
+        single_submitted = st.form_submit_button(t["score_single"], type="primary", width="stretch", disabled=not all(path.is_file() for path in (MODEL_PATH, IMPUTER_PATH, FEATURES_PATH)))
+    st.caption(t["single_caveat"])
+    if single_submitted:
+        try:
+            single_df = pd.DataFrame([{
+                "SK_ID_CURR": 0,
+                "AMT_INCOME_TOTAL": single_income,
+                "AMT_CREDIT": single_credit,
+                "AMT_ANNUITY": single_annuity,
+                "DAYS_BIRTH": -int(single_age * 365.25),
+                "EXT_SOURCE_2": single_ext2,
+                "EXT_SOURCE_3": single_ext3,
+            }])
+            model, imputer, feature_names = load_model_bundle()
+            single_result = score_applications(single_df, None, None, model, imputer, feature_names, threshold)
+            explanation = explain_application(
+                single_df, model, imputer, feature_names, text_language
+            )
+            probability = float(single_result.loc[0, "Default probability"])
+            risk_label = t["reject"] if probability >= threshold else t["approve"]
+            metric_col, decision_col = st.columns(2)
+            metric_col.metric(t["single_probability"], f"{probability:.2%}", border=True)
+            if probability >= threshold:
+                decision_col.error(f"{t['decision']}: {risk_label}")
+            else:
+                decision_col.success(f"{t['decision']}: {risk_label}")
+
+            st.subheader(t["shap_title"], text_alignment=alignment)
+            st.write(t["shap_intro"])
+            explanation["direction"] = np.where(
+                explanation["contribution"] > 0, t["shap_up"], t["shap_down"]
+            )
+            fig_shap = go.Figure(
+                go.Bar(
+                    x=explanation["contribution"],
+                    y=explanation["feature"],
+                    orientation="h",
+                    marker_color=[
+                        "#C95B5B" if value > 0 else "#329A78"
+                        for value in explanation["contribution"]
+                    ],
+                    text=[f"{value:+.3f}" for value in explanation["contribution"]],
+                    textposition="auto",
+                    hovertemplate=(
+                        "%{y}<br>"
+                        + t["shap_contribution"]
+                        + ": %{x:+.4f}<extra></extra>"
+                    ),
+                )
+            )
+            fig_shap.add_vline(x=0, line_width=1, line_color="#9AA3AF")
+            fig_shap.update_layout(
+                xaxis_title=t["shap_axis"],
+                yaxis_title=None,
+                height=430,
+                showlegend=False,
+                margin={"l": 12, "r": 16, "t": 16, "b": 16},
+            )
+            st.plotly_chart(
+                fig_shap,
+                width="stretch",
+                config={"displayModeBar": False},
+                alt=t["shap_title"],
+            )
+            risk_col, safer_col = st.columns(2)
+            for column, positive, title in (
+                (risk_col, True, t["shap_risk_up"]),
+                (safer_col, False, t["shap_risk_down"]),
+            ):
+                factors = explanation[
+                    explanation["contribution"] > 0
+                    if positive
+                    else explanation["contribution"] < 0
+                ].copy()
+                factors["absolute_contribution"] = factors["contribution"].abs()
+                factors = factors.nlargest(5, "absolute_contribution")
+                with column:
+                    st.markdown(f"**{title}**")
+                    if factors.empty:
+                        st.caption(t["shap_no_factors"])
+                    else:
+                        for row in factors.itertuples(index=False):
+                            st.markdown(
+                                f"- **{row.feature}:** {row.contribution:+.4f}"
+                            )
+            st.caption(t["shap_note"])
+        except Exception as error:
+            st.error(f"{t['single_error']} ({error})")
+
+    st.divider()
+    st.subheader(t["score_title"], text_alignment=alignment)
+    sample_df = pd.DataFrame({
+        "SK_ID_CURR": [100001, 100002, 100003],
+        "AMT_INCOME_TOTAL": [250000.0, 90000.0, 180000.0],
+        "AMT_CREDIT": [450000.0, 800000.0, 500000.0],
+        "AMT_ANNUITY": [22500.0, 40000.0, 25000.0],
+        "DAYS_BIRTH": [-16425, -8395, -12775],
+        "EXT_SOURCE_2": [0.75, 0.21, 0.55],
+        "EXT_SOURCE_3": [0.68, 0.15, 0.48],
+    })
+    st.download_button(
+        t["sample_download"],
+        data=sample_df.to_csv(index=False).encode("utf-8-sig"),
+        file_name="sample_applicants.csv",
+        mime="text/csv",
+        help=t["sample_help"],
+        width="stretch",
+    )
     application_file = st.file_uploader(t["application_csv"], type=["csv"], key="application_csv")
     bureau_col, previous_col = st.columns(2)
     with bureau_col:
@@ -421,6 +665,15 @@ else:
         try:
             with st.spinner(t["score_intro"]):
                 application_df = pd.read_csv(io.BytesIO(application_file.getvalue()))
+                if application_df.empty:
+                    raise ValueError(t["empty_csv_error"])
+                required_application_columns = {
+                    "SK_ID_CURR", "AMT_INCOME_TOTAL", "AMT_CREDIT", "AMT_ANNUITY",
+                    "DAYS_BIRTH", "EXT_SOURCE_2", "EXT_SOURCE_3",
+                }
+                missing_columns = sorted(required_application_columns.difference(application_df.columns))
+                if missing_columns:
+                    raise ValueError(f"{t['required_columns_error']} {', '.join(missing_columns)}")
                 bureau_df = pd.read_csv(io.BytesIO(bureau_file.getvalue())) if bureau_file else None
                 previous_df = pd.read_csv(io.BytesIO(previous_file.getvalue())) if previous_file else None
                 model, imputer, feature_names = load_model_bundle()
@@ -469,4 +722,3 @@ else:
         )
     elif application_file is None:
         st.caption(t["no_rows"])
-
