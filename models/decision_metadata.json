@@ -1,0 +1,14 @@
+{
+  "decision_threshold": 0.3290002942085266,
+  "reference_threshold": 0.1773,
+  "validation_roc_auc": 0.7672024397889119,
+  "projected_portfolio_value": 329991707.5784921,
+  "portfolio_size_assumption": 307511,
+  "cost_matrix_per_applicant": {
+    "tn": 1500,
+    "fp": -300,
+    "fn": -4000,
+    "tp": 0
+  },
+  "feature_count": 246
+}

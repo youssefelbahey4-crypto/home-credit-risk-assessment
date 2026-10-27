@@ -63,7 +63,7 @@ src/preprocessing.py       Imputation helpers
 src/train.py               XGBoost training helper
 src/evaluate.py            Business threshold evaluation
 predict.py                  Inference entry point
-models/                     Locally generated model artifacts (git-ignored)
+models/                     Required inference artifacts for the dashboard
 data/raw/                   Locally supplied dataset files (git-ignored)
 ```
 
@@ -80,7 +80,7 @@ pip install -r requirements.txt
 python -m ipykernel install --user --name project-1-py312 --display-name "Python 3.12 (.venv)"
 ```
 
-Place `application_train.csv`, `bureau.csv`, and `previous_application.csv` in `data/raw/`, then open `notebooks/main01.ipynb` and run all cells from top to bottom. The notebook writes the trained model, imputer, feature names, and decision metadata to `models/`.
+Place `application_train.csv`, `bureau.csv`, and `previous_application.csv` in `data/raw/`, then open `notebooks/main01.ipynb` and run all cells from top to bottom. The notebook writes the trained model, imputer, feature names, and decision metadata to `models/`. The four inference artifacts in `models/` are included in Git so the deployed Streamlit app can load the model. Raw datasets remain excluded.
 
 Run the dashboard from the project root. On Windows, call the project's Python directly so this works even when `python` is not on `PATH`:
 
@@ -92,7 +92,15 @@ On macOS/Linux, activate `.venv` first and run `python -m streamlit run app.py`.
 
 #### If port 8501 is already in use
 
-Streamlit uses port `8501` by default. If the dashboard is already running, refresh its existing browser tab. To start another instance, choose a different port, such as `8502`:
+Streamlit uses port `8501` by default. This message usually means another Streamlit process is already running. Reuse its browser tab and refresh it; closing the tab alone does not stop the server.
+
+To restart the app on the default port, go to the terminal where Streamlit is running, press `Ctrl+C` once, then run the dashboard only once:
+
+```powershell
+.\.venv\Scripts\python.exe -m streamlit run app.py
+```
+
+Streamlit prints the local URL and normally opens it in your browser. If you want a second instance while the first is still running, choose a different port, such as `8502`:
 
 ```powershell
 .\.venv\Scripts\python.exe -m streamlit run app.py --server.port 8502
