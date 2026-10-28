@@ -1,5 +1,7 @@
 # Home Credit Credit Risk | مخاطر الائتمان
 
+[🚀 Open the live Streamlit app](https://youssefelbahey4-crypto-home-credit-risk-assessment-4isz7n.streamlit.app/)
+
 **From probability of default to a business decision.** This project uses Home Credit applicant and credit-history data to rank default risk, compare classification models, and select an approval policy using an explicit financial cost matrix.
 
 > **Portfolio headline:** the project reports ROC-AUC improving from **0.6882** to **0.7677** and a projected net portfolio value of approximately **$64.28M**. These are project-reported results; the notebook recalculates validation scores and portfolio value when run.
