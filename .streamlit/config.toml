@@ -1,14 +1,14 @@
-# Elegant, high-contrast financial dashboard theme
+# Muted sage and slate palette for a calmer finance dashboard
 [theme]
 base = "dark"
-primaryColor = "#4FD1C5"
-backgroundColor = "#0B1220"
-secondaryBackgroundColor = "#151F2D"
-codeBackgroundColor = "#101A28"
-textColor = "#E6EDF7"
-linkColor = "#75D6CC"
-borderColor = "#2A394B"
-codeTextColor = "#C7D2E0"
+primaryColor = "#4E7165"
+backgroundColor = "#111715"
+secondaryBackgroundColor = "#1A211F"
+codeBackgroundColor = "#151C19"
+textColor = "#E4E9E5"
+linkColor = "#A5BDB2"
+borderColor = "#303A35"
+codeTextColor = "#C7D0CA"
 showWidgetBorder = true
 showSidebarBorder = true
 baseRadius = "10px"
@@ -22,26 +22,26 @@ codeFontSize = "13px"
 headingFontSizes = ["30px", "24px", "19px", "16px", "14px", "12px"]
 headingFontWeights = [700, 650, 600, 600, 500, 500]
 linkUnderline = false
-greenColor = "#4ADE80"
-redColor = "#FB7185"
-yellowColor = "#FBBF24"
-orangeColor = "#FB923C"
-blueColor = "#60A5FA"
-violetColor = "#A78BFA"
-grayColor = "#94A3B8"
-chartCategoricalColors = ["#4FD1C5", "#60A5FA", "#C4B5FD", "#FBBF24", "#FB7185", "#38BDF8", "#A3E635", "#F9A8D4"]
-chartSequentialColors = ["#0B3B3A", "#0F5350", "#126B66", "#16837C", "#1D9B91", "#35B3A8", "#5ACABB", "#82D9CD", "#AEE8DF", "#DDF7F1"]
-dataframeBorderColor = "#2A394B"
-dataframeHeaderBackgroundColor = "#192636"
-dataframeHeaderTextColor = "#F3F7FB"
+greenColor = "#78A28B"
+redColor = "#C27F82"
+yellowColor = "#B59C70"
+orangeColor = "#B88670"
+blueColor = "#8099A8"
+violetColor = "#9587A1"
+grayColor = "#929D96"
+chartCategoricalColors = ["#759487", "#788F9E", "#B19A73", "#AA8586", "#829179", "#92869B", "#6F9290", "#B39380"]
+chartSequentialColors = ["#172822", "#21372F", "#2D473C", "#3A5849", "#496957", "#5A7966", "#6D8A76", "#829B87", "#9EAF9F", "#C1CEC3"]
+dataframeBorderColor = "#303A35"
+dataframeHeaderBackgroundColor = "#222B27"
+dataframeHeaderTextColor = "#E4E9E5"
 
 [theme.sidebar]
-backgroundColor = "#0B1220"
-secondaryBackgroundColor = "#151F2D"
-codeBackgroundColor = "#101A28"
-textColor = "#E6EDF7"
-borderColor = "#2A394B"
-primaryColor = "#4FD1C5"
+backgroundColor = "#111715"
+secondaryBackgroundColor = "#1A211F"
+codeBackgroundColor = "#151C19"
+textColor = "#E4E9E5"
+borderColor = "#303A35"
+primaryColor = "#4E7165"
 
 [server]
 address = "0.0.0.0"

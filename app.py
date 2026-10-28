@@ -568,7 +568,7 @@ else:
                     y=explanation["feature"],
                     orientation="h",
                     marker_color=[
-                        "#C95B5B" if value > 0 else "#329A78"
+                        "#B9787B" if value > 0 else "#6F9883"
                         for value in explanation["contribution"]
                     ],
                     text=[f"{value:+.3f}" for value in explanation["contribution"]],
