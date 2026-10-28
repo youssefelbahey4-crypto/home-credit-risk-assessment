@@ -418,12 +418,13 @@ if page_key == "overview":
     st.header(t["overview_title"], text_alignment=alignment)
     st.write(t["overview_intro"])
 
-    auc_col, threshold_col, value_col, size_col = st.columns(4)
-    auc_col.metric(t["auc"], f"{auc:.4f}", border=True)
-    threshold_col.metric(t["threshold"], f"{default_threshold:.4f}", border=True)
-    value_col.metric(t["portfolio_value"], compact_money(portfolio_value, "USD"), border=True)
+    auc_col, value_col = st.columns(2, gap="large")
+    auc_col.metric(t["auc"], f"{auc:.4f}", border=True, height=150)
+    value_col.metric(t["portfolio_value"], compact_money(portfolio_value, "USD"), border=True, height=150)
     value_col.caption(f"≈ {compact_money(portfolio_value * exchange_rate, 'EGP')}")
-    size_col.metric(t["portfolio_size"], f"{portfolio_size:,}", border=True)
+    threshold_col, size_col = st.columns(2, gap="large")
+    threshold_col.metric(t["threshold"], f"{default_threshold:.4f}", border=True, height=150)
+    size_col.metric(t["portfolio_size"], f"{portfolio_size:,}", border=True, height=150)
 
     st.caption(t["reported_value_note"])
     st.subheader(t["cost_title"])
@@ -568,7 +569,7 @@ else:
                     y=explanation["feature"],
                     orientation="h",
                     marker_color=[
-                        "#B9787B" if value > 0 else "#6F9883"
+                        "#EF4444" if value > 0 else "#10B981"
                         for value in explanation["contribution"]
                     ],
                     text=[f"{value:+.3f}" for value in explanation["contribution"]],
@@ -580,7 +581,7 @@ else:
                     ),
                 )
             )
-            fig_shap.add_vline(x=0, line_width=1, line_color="#9AA3AF")
+            fig_shap.add_vline(x=0, line_width=1, line_color="#CBD5E1")
             fig_shap.update_layout(
                 xaxis_title=t["shap_axis"],
                 yaxis_title=None,
