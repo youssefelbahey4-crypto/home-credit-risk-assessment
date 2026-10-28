@@ -1,14 +1,14 @@
 # Navy, royal blue, and soft status colors for a clear finance dashboard
 [theme]
-base = "light"
+base = "dark"
 primaryColor = "#2563EB"
-backgroundColor = "#F8FAFC"
-secondaryBackgroundColor = "#FFFFFF"
-codeBackgroundColor = "#F1F5F9"
-textColor = "#0F172A"
-linkColor = "#2563EB"
-borderColor = "#E2E8F0"
-codeTextColor = "#1E293B"
+backgroundColor = "#0F172A"
+secondaryBackgroundColor = "#1E293B"
+codeBackgroundColor = "#172033"
+textColor = "#F8FAFC"
+linkColor = "#93C5FD"
+borderColor = "#334155"
+codeTextColor = "#DBEAFE"
 showWidgetBorder = true
 showSidebarBorder = true
 baseRadius = "10px"
@@ -30,15 +30,15 @@ blueColor = "#2563EB"
 violetColor = "#7C3AED"
 grayColor = "#64748B"
 chartCategoricalColors = ["#2563EB", "#10B981", "#F59E0B", "#EF4444", "#64748B", "#7C3AED", "#06B6D4", "#F97316"]
-chartSequentialColors = ["#EFF6FF", "#DBEAFE", "#BFDBFE", "#93C5FD", "#60A5FA", "#3B82F6", "#2563EB", "#1D4ED8", "#1E40AF", "#1E3A8A"]
-dataframeBorderColor = "#E2E8F0"
-dataframeHeaderBackgroundColor = "#F1F5F9"
-dataframeHeaderTextColor = "#0F172A"
+chartSequentialColors = ["#172554", "#1E3A8A", "#1D4ED8", "#2563EB", "#3B82F6", "#60A5FA", "#93C5FD", "#BFDBFE", "#DBEAFE", "#EFF6FF"]
+dataframeBorderColor = "#334155"
+dataframeHeaderBackgroundColor = "#1E293B"
+dataframeHeaderTextColor = "#F8FAFC"
 
 [theme.sidebar]
-backgroundColor = "#0F172A"
+backgroundColor = "#0B1220"
 secondaryBackgroundColor = "#1E293B"
-codeBackgroundColor = "#1E293B"
+codeBackgroundColor = "#172033"
 textColor = "#F8FAFC"
 borderColor = "#334155"
 primaryColor = "#2563EB"
