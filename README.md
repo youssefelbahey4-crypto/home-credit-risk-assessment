@@ -2,6 +2,10 @@
 
 [🚀 **Open the live Streamlit app**](https://youssefelbahey4-crypto-home-credit-risk-assessment-4isz7n.streamlit.app/)
 
+![Portfolio overview showing model metrics and financial impact by applicant outcome](images/portfolio-overview.png)
+
+*Portfolio overview with validation score, decision threshold, estimated value, and USD/EGP outcome values.*
+
 This project uses **machine learning** to estimate whether a loan **applicant** may have **payment difficulties**. It then shows how different approval choices could affect a sample portfolio (محفظة تمويل افتراضية).
 
 The app is available in Arabic and English. It is an educational project, not a ready-to-use bank lending system.
