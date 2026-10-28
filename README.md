@@ -1,135 +1,224 @@
-# Home Credit Credit Risk | مخاطر الائتمان
+# Credit Risk
 
-[🚀 Open the live Streamlit app](https://youssefelbahey4-crypto-home-credit-risk-assessment-4isz7n.streamlit.app/)
+[🚀 **Open the live Streamlit app**](https://youssefelbahey4-crypto-home-credit-risk-assessment-4isz7n.streamlit.app/)
 
-**From probability of default to a business decision.** This project uses Home Credit applicant and credit-history data to rank default risk, compare classification models, and select an approval policy using an explicit financial cost matrix.
+This project uses **machine learning** to estimate whether a loan **applicant** may have **payment difficulties**. It then shows how different approval choices could affect a sample portfolio (محفظة تمويل افتراضية).
 
-> **Portfolio headline:** the project reports ROC-AUC improving from **0.6882** to **0.7677** and a projected net portfolio value of approximately **$64.28M**. These are project-reported results; the notebook recalculates validation scores and portfolio value when run.
+The app is available in Arabic and English. It is an educational project, not a ready-to-use bank lending system.
 
-## Business problem
+## A quick guide to the terms
 
-The Home Credit training set is imbalanced: approximately **8.07%** of applicants have `TARGET = 1` (payment difficulties). A standard probability cutoff of **0.50** is not necessarily the best lending decision because the costs of approving a defaulter and rejecting a reliable applicant differ.
+- **Default :** difficulty repaying a loan.
+- **Feature :** an input the model uses, such as income or age.
+- **Target :** in this dataset, `TARGET = 1` means payment difficulties and `TARGET = 0` means no recorded difficulties.
+- **Validation data (بيانات اختبار لم يستخدمها التدريب):** data used to check how well a trained model ranks applicants.
+- **ROC-AUC (مقياس قدرة النموذج على ترتيب المخاطر):** higher is better; 0.5 is about random ranking, and 1.0 is perfect ranking. It does not tell us whether every probability is correct.
+- **Threshold (حدّ القرار):** the probability level used to flag an application as higher risk.
+- **Confusion matrix (جدول مقارنة التوقّعات بالنتائج الحقيقية):** counts correct and incorrect approvals and rejections.
 
-The proposed cost matrix assigns the following value to each outcome:
+## What the app does
 
-| Actual outcome | Decision | Confusion matrix | Value per applicant |
-|---|---|---:|---:|
-| No default | Approve | TN | +$1,500 |
-| No default | Reject | FP | −$3,000 |
-| Default | Approve | FN | −$4,000 |
-| Default | Reject | TP | $0 |
+- **Portfolio overview (ملخص المحفظة):** shows saved model results, the decision threshold, estimated scenario value, and the cost assumptions in USD and EGP.
+- **Value simulator (محاكي القيمة):** enter counts of correct or incorrect approvals and rejections to see the estimated value under the assumptions below.
+- **Applicant scoring (تقييم الطلبات):** score one example applicant or upload a CSV file to score a group, then download the results.
+- **SHAP explanation (تفسير أسباب نتيجة النموذج):** shows which supplied applicant details moved the model's risk score up or down.
+- **Language and phone access:** switch between Arabic and English. For local phone access, the phone and computer need to be on the same private network.
 
-The objective is to select a threshold \(t\) that maximizes:
+## Model results
 
-\[
-\text{Net Value}(t) = 1500\,TN(t) - 3000\,FP(t) - 4000\,FN(t)
-\]
+### Main experiment — `notebooks/main01.ipynb`
 
-This is an illustrative business scenario. The cost assumptions and portfolio-size scaling should be reviewed with business stakeholders; the estimate is not realized profit.
+The notebook compares models on its validation data. The first three rows show how adding credit-history information changed the Logistic Regression model; the remaining rows compare different model types.
 
-## Pipeline and methodology
-
-1. **Data loading:** application training data, bureau history, and previous application history are read from `data/raw/`.
-2. **Feature engineering:** customer-level bureau and previous-application aggregates are joined to the application table before modeling. Aggregations are grouped by applicant ID to retain one row per applicant. The current shared pipeline does **not** aggregate credit-card balance data.
-3. **Preprocessing:** a stratified train/validation split is created. Median imputation is fit on the training split and then applied to validation data.
-4. **Model benchmarking:** Logistic Regression, Decision Tree, Random Forest, and tuned XGBoost are compared using validation ROC-AUC.
-5. **Decision optimization:** candidate probability thresholds are scored with the cost matrix. The notebook compares the 0.50 reference with the cost-optimal threshold and reports a scaled portfolio estimate.
-6. **Explainability and export:** native XGBoost TreeSHAP contributions summarize global feature importance. The model, imputer, feature schema, and decision metadata are saved under `models/`.
-
-### Reported model progression
-
-| Model | Reported validation ROC-AUC |
+| Model and experiment | Validation ROC-AUC (ترتيب المخاطر) |
 |---|---:|
-| Logistic Regression baseline | 0.6882 |
-| Logistic Regression with engineered features | 0.6946 |
+| Logistic Regression baseline | 0.6878 |
+| Logistic Regression + bureau history | 0.6917 |
+| Logistic Regression + bureau and previous applications | 0.6946 |
 | Decision Tree | 0.7093 |
 | Random Forest | 0.7439 |
 | XGBoost before tuning | 0.7659 |
-| Tuned XGBoost | **0.7677** |
+| **Tuned XGBoost (أفضل إعدادات جرى اختيارها بالتجربة)** | **0.7677** |
 
-The notebook recalculates these values on execution. Treat the table as the project's reported progression and confirm that the final published numbers come from one consistent split and run.
+### Second experiment — `notebooks/credit_risk.ipynb`
 
-## Threshold and business impact
+This notebook runs a separate comparison. Its validation results are:
 
-Project materials report two business-threshold values, **0.3083** and **0.1773**, across iterations. The notebook includes **0.1773** as the reference threshold and calculates the optimal threshold from the validation predictions and cost assumptions. Re-run the notebook and choose one canonical threshold before publishing headline results; threshold choice changes with the cost matrix and validation predictions.
+| Model | Validation ROC-AUC |
+|---|---:|
+| Logistic Regression | 0.6621 |
+| Decision Tree | 0.7109 |
+| Random Forest | 0.7422 |
+| **Tuned XGBoost (إعدادات محسّنة بالتجربة)** | **0.7672** |
 
-The reported net portfolio value is approximately **$64.28M**. It is a projection based on scenario economics and a portfolio-size assumption, not a guaranteed or realized return. See the notebook's threshold simulation for the assumptions and freshly calculated value.
+The two notebooks report different numbers because they are separate experiments with different data preparation and model settings. Compare models **within the same notebook**; do not treat the two tables as one shared test. The current saved dashboard metadata reports ROC-AUC **0.7672**. Re-run and export one final model version before publishing a single headline score.
 
-## Repository structure
+### What is the difference between the models?
+
+- **Logistic Regression :** a simple, fast starting point. It works best when the relationship between inputs and risk is fairly straightforward.
+- **Decision Tree :** follows a sequence of “if this, then that” rules. One tree is easier to picture, but can miss more complicated patterns.
+- **Random Forest :** combines many decision trees. Their combined vote is often stronger than one tree, but the full model is harder to explain.
+- **XGBoost :** builds trees in stages; each stage tries to correct earlier mistakes. It scored highest in these notebook experiments, but is more complex to understand.
+- **Tuning :** trying different model settings and keeping the best validation result. In `main01.ipynb`, tuning raised XGBoost from 0.7659 to 0.7677.
+
+---
+
+## 🔄 Project Workflow
+
+### 1. Data collection
+The dataset used in this project is sourced from the official **[Kaggle Home Credit Default Risk Competition](https://www.kaggle.com/c/home-credit-default-risk/data)**. Place `application_train.csv`, `bureau.csv`, and `previous_application.csv` in `data/raw/`.
+
+---
+
+### 2. Initial data check
+Inspect the table sizes, column types, missing values, duplicates, and target balance. The notebook reports 307,511 application rows and an approximately 8.07% default rate.
+
+---
+
+### 3. Data cleaning
+Remove columns with more than 65% missing values. Flag the unusual `DAYS_EMPLOYED = 365243` value and replace it with a missing value for later handling.
+
+---
+
+### 4. Prepare model inputs
+Convert category text to numbers and fill missing values using statistics learned from training data.
+
+---
+
+### 5. Add credit-history information
+Group bureau and previous-application records by `SK_ID_CURR`, calculate summary values, and join them to each applicant.
+
+---
+
+### 6. Split and train
+Keep a validation set aside, then compare Logistic Regression, Decision Tree, Random Forest, and XGBoost.
+
+---
+
+### 7. Improve and compare models
+Tune XGBoost settings with cross-validation (اختبار متكرر على أجزاء من بيانات التدريب) and compare ROC-AUC scores within each notebook run.
+
+---
+
+### 8. Choose a decision threshold
+Compare the standard probability cutoff and statistical measures with the financial cost assumptions.
+
+---
+
+### 9. Explain and review results
+Inspect global and individual SHAP contributions, plus the confusion matrix (جدول التوقعات الصحيحة والخاطئة) and estimated financial impact.
+
+---
+
+### 10. Save the app files
+Export the trained model, imputer, feature names, and decision metadata to `models/` for the Streamlit dashboard.
+
+---
+The shared feature code summarizes bureau and previous-application history. It does not summarize credit-card balance history. Notebook metrics are experiment results, not proof that the model is ready for real lending.
+
+## Business problem and sample costs (مشكلة التمويل والتكاليف الافتراضية)
+
+The model estimates risk; a separate cost matrix (جدول افتراضات الخسارة والقيمة) shows why the decision threshold matters. For example, approving someone who later defaults may cost more than rejecting someone who would have repaid.
+
+| Result | Meaning | Example value per applicant |
+|---|---|---:|
+| TN — correct approval | No default, approved | +$1,500 |
+| FP — incorrect rejection | No default, rejected | −$300 |
+| FN — incorrect approval | Default, approved | −$4,000 |
+| TP — correct rejection | Default, rejected | $0 |
+
+The simulator adds the values for the counts you enter: `TN × 1,500 + FP × (−300) + FN × (−4,000) + TP × 0`. These are project examples, not actual bank costs or profits in Egypt. The dashboard's EGP amount is calculated using a manual planning exchange rate; it is not a live currency quote.
+
+The saved dashboard metadata currently records a decision threshold of **0.3290**, a reference threshold of **0.1773**, an assumed portfolio size of **307,511**, and an estimated scenario value of about **$329.99M**. These depend on the saved model run and sample cost assumptions; they are not guaranteed returns.
+
+## Using applicant scoring (طريقة تقييم الطلبات)
+
+### Score one applicant
+
+Choose **Custom input** or one of the example profiles. Enter the six available details and press **Score applicant**. The app shows the estimated default probability and compares it with the chosen threshold.
+
+This short form provides only six features. The model expects more, so the remaining values are filled using **imputation (استكمال القيم الناقصة إحصائيًا)**. Use this form for demonstration only, not for real credit decisions. The form labels amounts as USD; use units consistent with the model's training data. The exchange-rate control does not convert model inputs.
+
+### Score a group with CSV
+
+Download the sample CSV from the app, keep the column names, fill in applicant rows, and upload it. Required columns are:
 
 ```text
-notebooks/main01.ipynb       Executive analysis and model comparison
-src/data_loader.py         Loading application, bureau, and previous-application data
-src/feature_engineering.py Shared feature construction and history aggregation
-src/preprocessing.py       Imputation helpers
-src/train.py               XGBoost training helper
-src/evaluate.py            Business threshold evaluation
-predict.py                  Inference entry point
-models/                     Required inference artifacts for the dashboard
-data/raw/                   Locally supplied dataset files (git-ignored)
+SK_ID_CURR, AMT_INCOME_TOTAL, AMT_CREDIT, AMT_ANNUITY,
+DAYS_BIRTH, EXT_SOURCE_2, EXT_SOURCE_3
 ```
 
-## Installation and run
+You can also upload optional bureau-history or previous-application files. They need applicant IDs (`SK_ID_CURR`) and the fields used to build the model's history features. The app displays up to 5,000 rows; the downloaded file contains all scored rows.
 
-Use Python 3.12 or newer:
+A probability at or above the selected threshold is marked **high risk (مخاطر أعلى — للمراجعة)**. A probability below it is marked **provisional approval (موافقة مبدئية)**. These are suggestions to support review, not automatic final decisions.
 
-```bash
-# Windows PowerShell
+### Understand the SHAP chart
+
+The chart uses **TreeSHAP** values from the saved XGBoost model, not made-up example numbers. Red means a supplied feature pushed the model's risk score higher; green means it pushed the score lower.
+
+SHAP values describe a change in the model's raw score (`log-odds`), not a direct number of percentage points in the default probability. SHAP explains how the model reached a score; it does not prove that a feature caused a person to default.
+
+## Run the app on your computer
+
+Use Python 3.12 from the project folder:
+
+```powershell
 py -3.12 -m venv .venv
-.venv\Scripts\Activate.ps1
-# macOS/Linux: python3.12 -m venv .venv && source .venv/bin/activate
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python -m ipykernel install --user --name project-1-py312 --display-name "Python 3.12 (.venv)"
-```
-
-Place `application_train.csv`, `bureau.csv`, and `previous_application.csv` in `data/raw/`, then open `notebooks/main01.ipynb` and run all cells from top to bottom. The notebook writes the trained model, imputer, feature names, and decision metadata to `models/`. The four inference artifacts in `models/` are included in Git so the deployed Streamlit app can load the model. Raw datasets remain excluded.
-
-Run the dashboard from the project root. On Windows, call the project's Python directly so this works even when `python` is not on `PATH`:
-
-```powershell
 .\.venv\Scripts\python.exe -m streamlit run app.py
 ```
 
-On macOS/Linux, activate `.venv` first and run `python -m streamlit run app.py`.
+## Repository structure 
 
-#### If port 8501 is already in use
-
-Streamlit uses port `8501` by default. This message usually means another Streamlit process is already running. Reuse its browser tab and refresh it; closing the tab alone does not stop the server.
-
-To restart the app on the default port, go to the terminal where Streamlit is running, press `Ctrl+C` once, then run the dashboard only once:
-
-```powershell
-.\.venv\Scripts\python.exe -m streamlit run app.py
+```text
+.
+├── app.py                         Streamlit dashboard
+├── predict.py                     Prediction helper 
+├── requirements.txt               Python packages 
+├── test_pipeline.py               Pipeline checks 
+├── .streamlit/config.toml         App theme and server settings 
+├── notebooks/
+│   ├── main01.ipynb               Main analysis and model workflow 
+│   └── credit_risk.ipynb           Separate model experiment 
+├── src/
+│   ├── data_loader.py              Load source tables 
+│   ├── feature_engineering.py      Clean and build model inputs 
+│   ├── preprocessing.py            Prepare model data 
+│   ├── train.py                    Train XGBoost 
+│   └── evaluate.py                 Compare decision thresholds 
+├── models/                         Saved files used by the app 
+└── data/raw/                       Original data; not stored in Git 
 ```
 
-Streamlit prints the local URL and normally opens it in your browser. If you want a second instance while the first is still running, choose a different port, such as `8502`:
+Streamlit needs these saved files in `models/`:
 
-```powershell
-.\.venv\Scripts\python.exe -m streamlit run app.py --server.port 8502
-```
+- `credit_risk_xgb_model.pkl` — trained model (النموذج المدرّب)
+- `imputer.pkl` — missing-value helper (أداة استكمال القيم الناقصة)
+- `feature_names.pkl` — expected feature list (قائمة الخصائص المطلوبة)
+- `decision_metadata.json` — saved scores and cost assumptions (النتائج والافتراضات المحفوظة)
 
-Open `http://localhost:8502` on the computer. For phone access, use `http://<computer-LAN-IP>:8502` instead of port `8501` while that instance is running.
+These model files are included in Git for the deployed app. The raw applicant datasets are not. Never add private customer records, passwords, or app secrets to the public repository.
 
-The dashboard supports Arabic and English and displays USD and EGP using the editable planning rate in the sidebar (it is not a live exchange quote).
+## Egypt: possible value and important limits (الفائدة المحتملة لمصر والقيود)
 
-### Open the dashboard from a phone
+The idea could support more consistent review of finance applications and help lenders study the balance between access to credit and repayment risk. For Egypt, this would require training and testing on representative Egyptian data first. The Central Bank of Egypt describes support for MSME (المشروعات متناهية الصغر والصغيرة والمتوسطة) finance and digital assessment using alternative data under applicable controls; this project is not a CBE-backed or locally validated system. ([CBE: access to MSME finance](https://www.cbe.org.eg/en/msmes-entrepreneurship/msmes/facilitating-access-to-finance))
 
-1. Keep the computer and phone on the same private local network/router. The computer can use Ethernet while the phone uses Wi-Fi.
-2. On Windows, run `ipconfig` in PowerShell and note the IPv4 address for the active network adapter.
-3. On the phone, open `http://<computer-LAN-IP>:8501` in a browser. Replace `<computer-LAN-IP>` with the address from `ipconfig` (for example, `http://192.168.1.20:8501`). If you started Streamlit on another port, use that port in the phone address too.
-4. If Windows Firewall asks, allow access on **Private networks**. If the connection is still blocked, allow inbound TCP on the port used by Streamlit (`8501` by default) on the Private profile.
+The CBE's Financial Inclusion Datahub (منصة بيانات الشمول المالي) reported 79% financial inclusion (الشمول المالي) in June 2026. That is context for the importance of responsible digital financial services, not an outcome produced by this app. ([CBE financial-inclusion data](https://www.cbe.org.eg/en/financial-inclusion/data-measurement-and-reports))
 
-The computer's LAN address can change, so check `ipconfig` again if the link stops working. Keep the app on your local network; don't use public IP port forwarding to expose it to the internet.
+## Limits and responsible use
 
-For inference, call `predict_loan_default()` from `predict.py` with the application CSV. Pass `bureau_path` and `previous_path` when those histories are available so the inference feature set matches training. Credit-card histories are not currently supported by the shared feature pipeline.
+- The project uses Home Credit data; it has not been validated for lending in Egypt.
+- ROC-AUC measures how well the model ranks risk; it does not measure fairness or guarantee accurate probabilities.
+- The cost values, threshold, and portfolio estimate are assumptions that need local review.
+- Never use the six-input demo form to make real lending decisions.
+- Do not upload private customer information to the public demo.
+- Any operational use would need local validation, privacy protections, fairness checks, human review, and compliance with current requirements.
 
-## Responsible use and data
+## Author
 
-This repository is a portfolio project, not a validated lending system. ROC-AUC does not establish probability calibration, fairness, compliance, or suitability for real credit decisions. Before operational use, validate on out-of-time data, review costs and threshold choices with stakeholders, assess subgroup outcomes, and monitor performance.
+**Youssef Elbahey**
 
-Download the Home Credit Default Risk dataset from its official competition source and follow its terms of use. Raw data and generated model binaries are excluded from Git; do not commit applicant-level data or private credentials.
-
-
-
+Third-year AI Engineering student, Faculty of Engineering
 
 
